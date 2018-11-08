@@ -65,9 +65,9 @@ class Parser
   def define_method(metadata, sql)
     method = <<-METHOD
     def #{metadata}
-      <<-SQL
+      DB.exec(<<-SQL
       #{set_indent(sql)}
-      SQL
+      SQL)
     end
     METHOD
     puts "#{method}"
