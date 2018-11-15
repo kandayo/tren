@@ -69,7 +69,7 @@ class Parser
       #{set_indent(sql)}
       SQL
 
-      PG.exec(query)
+      #{"PG.exec(query)" if metadata.starts_with? "insert"}
     end
     METHOD
     puts "#{method}"
