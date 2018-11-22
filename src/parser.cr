@@ -1,10 +1,10 @@
 class Parser
-  LINE_RE      = /^\s*--\s*name:\s*([a-z\_\?\!0-9]+)(\(.*?\)|).*?$/
-  PARAM_RE     = /\{\{(.*?)\}\}/
-  PARAM_RAW_RE = /\{\{\!(.*?)\}\}/
+  LINE_RE  = /^\s*--\s*name:\s*([a-z\_\?\!0-9]+)(\(.*?\)|).*?$/
+  PARAM_RE = /\{\{(.*?)\}\}/
 
   @metadata = ""
   @sql_lines = [] of String
+  @parameters = [] of String
 
   def initialize(@lines : Array(String))
     @metadata_index = 0
@@ -25,6 +25,7 @@ class Parser
         end
         define_method(@metadata, @sql_lines.each.join("\\n"))
         @sql_lines.clear
+        @parameters.clear
       end
     end
   end
@@ -48,11 +49,9 @@ class Parser
   end
 
   def parse_sql(sql)
-    sql = sql.gsub(PARAM_RAW_RE) do |token, match|
-      "\#{#{match[1]}}"
-    end
     sql = sql.gsub(PARAM_RE) do |token, match|
-      "\#{Tren.escape(#{match[1]})}"
+      @parameters << match[1]
+      "$#{@parameters.size}"
     end
   end
 
@@ -69,7 +68,7 @@ class Parser
       #{set_indent(sql)}
       SQL
 
-      #{"PG.exec(query)" if metadata.starts_with? "insert"}
+      #{"PG.exec(query, [#{@parameters.join(",")}])" if metadata.starts_with? "insert"}
     end
     METHOD
     puts "#{method}"
