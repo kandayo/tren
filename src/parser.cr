@@ -68,7 +68,15 @@ class Parser
       #{set_indent(sql)}
       SQL
 
-      #{"PG.exec(query, [#{@parameters.join(",")}])" if metadata.starts_with? "insert"}
+      #{
+        unless sql.starts_with?("select")
+          "PG.connection do |db|
+            db.exec(query, [#{@parameters.join(",")}])
+           end"
+        else
+          "query"
+        end
+      }
     end
     METHOD
     puts "#{method}"
